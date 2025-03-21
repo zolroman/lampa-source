@@ -132,9 +132,9 @@ function plugins(done) {
     fs.readdirSync(plgFolder).filter(function (file) {
         return fs.statSync(plgFolder+'/'+file).isDirectory();
     }).forEach(folder => {
-        bubbleFile(folder+'/'+folder+'.js')
-
+        
         plugin_sass(plgFolder+'/'+folder)
+        bubbleFile(folder+'/'+folder+'.js')
     });
       
     done();
@@ -223,6 +223,10 @@ function index_tizen(){
 }
 function index_github(){
     return src(idxFolder + '/github/**/*').pipe(dest(bulFolder+'github/lampa/'));
+}
+
+function plugins_github(){
+    return src(bulFolder + 'web/plugins/**/*').pipe(dest(bulFolder+'github/lampa/plugins/'));
 }
 
 /** Сверяем файлы **/
@@ -389,7 +393,7 @@ function buildDoc(done){
 
 exports.pack_webos   = series(sync_webos, uglify_task, public_webos, index_webos);
 exports.pack_tizen   = series(sync_tizen, uglify_task, public_tizen, index_tizen);
-exports.pack_github  = series(sync_github, uglify_task, public_github, write_manifest, index_github);
+exports.pack_github  = series(sync_github, uglify_task, public_github, write_manifest, index_github, plugins_github);
 exports.pack_plugins = series(plugins);
 exports.test         = series(test);
 exports.default = parallel(watch, browser_sync);
