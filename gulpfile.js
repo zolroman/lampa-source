@@ -290,7 +290,9 @@ function test(done){
 function enable_debug_mode(done){
     console.log("build with sourcemaps!")
     isDebugEnabled = true;
-    done()
+    return  src(idxFolder + 'github/lampainit.js')
+        .pipe(replace("'{{initialSettings}}'", fs.readFileSync('./initialSettings.json', 'utf-8')))
+        .pipe(dest(bulFolder+'web/'));
 }
 
 /**
