@@ -34,7 +34,6 @@ import Subtitles from './player/subtitles'
 import Error from './player/error'
 import {tracksFromFfprobe} from './player/track_info'
 import VLC from '../core/vlc'
-import Base64 from '../utils/base64'
 
 let html
 let listener = Subscribe()
@@ -539,8 +538,8 @@ function start(data, need, inner){
             if(Storage.field('torrserver_auth')){
                 url = url.replace('://', '://' + Storage.field('torrserver_login') + ':' + Storage.field('torrserver_password') + '@')
             }
-
-            window.location.assign('vlc://' + Base64.encode(url))
+            url = encodeURI(url);
+            window.location.assign('vlc://' + url);
         }
         else launchInner()
     }
