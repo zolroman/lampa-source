@@ -22,3 +22,4 @@ temp/
 package-lock.json
 src/utils/api/okko.js
 .DS_Store
+/initialSettings.json
