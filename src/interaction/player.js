@@ -532,17 +532,6 @@ function start(data, need, inner){
             else launchInner()
         })
     }
-    else if(Platform.is('browser')){
-        if(Storage.field(player_need) == 'vlc'){
-            let url = data.url.replace('&preload', '&play').replace(/\s/g, '%20')
-            if(Storage.field('torrserver_auth')){
-                url = url.replace('://', '://' + Storage.field('torrserver_login') + ':' + Storage.field('torrserver_password') + '@')
-            }
-            url = encodeURI(url);
-            window.location.assign('vlc://' + url);
-        }
-        else launchInner()
-    }
     else if(Platform.macOS()){
         launchExternalPlayer(data, player_need, {
             mpv:    'mpv://${_url}',
@@ -625,6 +614,17 @@ function start(data, need, inner){
             }
             listener.send('external', data)
         })
+    }
+    else if(Platform.is('browser')){
+        if(Storage.field(player_need) == 'vlc'){
+            let url = data.url.replace('&preload', '&play').replace(/\s/g, '%20')
+            if(Storage.field('torrserver_auth')){
+                url = url.replace('://', '://' + Storage.field('torrserver_login') + ':' + Storage.field('torrserver_password') + '@')
+            }
+            url = encodeURI(url)
+            window.location.assign('vlc://' + url)
+        }
+        else launchInner()
     }
     else launchInner()
 
