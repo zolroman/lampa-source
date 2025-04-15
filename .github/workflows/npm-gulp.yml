@@ -53,5 +53,5 @@ jobs:
           domain=none
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}/lampa:latest
           ghcr.io/${{ github.repository }}/lampa:1.0.${{ github.run_number }}
+          ghcr.io/${{ github.repository }}/lampa:latest
