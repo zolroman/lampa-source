@@ -48,6 +48,10 @@ data.rating = {
             start: 6
         },
         {
+            title: '#{filter_rating_from} 7',
+            start: 7
+        },
+        {
             title: '#{filter_rating_from} 4',
             start: 4
         },
