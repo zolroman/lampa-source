@@ -44,12 +44,12 @@ data.rating = {
             start: 8
         },
         {
-            title: '#{filter_rating_from} 6',
-            start: 6
-        },
-        {
             title: '#{filter_rating_from} 7',
             start: 7
+        },
+        {
+            title: '#{filter_rating_from} 6',
+            start: 6
         },
         {
             title: '#{filter_rating_from} 4',
