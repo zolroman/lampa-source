@@ -23,6 +23,7 @@ import Preroll from './advert/preroll'
 import Footer from './player/footer'
 import Segments from './player/segments'
 import VLC from '../core/vlc.js'
+import Base64 from '../utils/base64'
 
 let html
 let listener = Subscribe()
@@ -752,7 +753,25 @@ function start(data, need, inner){
         }
         else inner()
     }
-    else if(Platform.macOS()){
+    else if (Platform.is('browser')) {
+
+        if (Storage.field(player_need) == 'vlc') {
+            let url = data.url.replace('&preload', '&play').replace(/\s/g, '%20')
+            if (Storage.field('torrserver_auth')) {
+
+                if (Storage.field('torrserver_auth')) {
+                    url = url.replace('://', '://' + Storage.field('torrserver_login') + ':' + Storage.field('torrserver_password') + '@')
+                }
+            }
+
+
+            url = Base64.encode(url);
+
+            window.location.assign('vlc://' + url)
+        }
+        else inner()
+    }
+    else if (Platform.macOS()) {
         let external_url = externalPlayer(player_need, data, {
             mpv:    'mpv://${_url}',
             iina:   'iina://weblink?url=${url}',
@@ -769,7 +788,7 @@ function start(data, need, inner){
         }
         else inner()
     }
-    else if(Platform.is('apple_tv')){
+    else if (Platform.is('apple_tv')) {
         let apple_tv_client = Storage.field('apple_tv_client') ?? 'lampa';
         let external_url = externalPlayer(player_need, data, {
             vlc:        'vlc-x-callback://x-callback-url/stream?url=${url}',
@@ -778,12 +797,11 @@ function start(data, need, inner){
             vidhub:     'open-vidhub://x-callback-url/open?url=${url}',
             svplayer:   'svplayer://x-callback-url/stream?url=${url}',
             tracyplayer:'tracy://open?url=${url}',
-            tvospro:       'lampa://video?player=tvospro&src=${url}&playlist=${playlist}',
+            tvospro:    'lampa://video?player=tvospro&src=${url}&playlist=${playlist}',
             tvos:       'lampa://video?player=tvos&src=${url}&playlist=${playlist}',
             tvosl:      'lampa://video?player=tvosav&src=${url}&playlist=${playlist}',
             tvosSelect: 'lampa://video?player=lists&src=${url}&playlist=${playlist}'
         })
-
         if (external_url) {
             Preroll.show(data,()=>{
                 listener.send('external',data)
