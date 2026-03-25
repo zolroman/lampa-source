@@ -33,6 +33,8 @@ import Reaction from './player/reaction'
 import Subtitles from './player/subtitles'
 import Error from './player/error'
 import {tracksFromFfprobe} from './player/track_info'
+import VLC from '../core/vlc'
+import Base64 from '../utils/base64'
 
 let html
 let listener = Subscribe()
@@ -530,6 +532,17 @@ function start(data, need, inner){
             }
             else launchInner()
         })
+    }
+    else if(Platform.is('browser')){
+        if(Storage.field(player_need) == 'vlc'){
+            let url = data.url.replace('&preload', '&play').replace(/\s/g, '%20')
+            if(Storage.field('torrserver_auth')){
+                url = url.replace('://', '://' + Storage.field('torrserver_login') + ':' + Storage.field('torrserver_password') + '@')
+            }
+
+            window.location.assign('vlc://' + Base64.encode(url))
+        }
+        else launchInner()
     }
     else if(Platform.macOS()){
         launchExternalPlayer(data, player_need, {
