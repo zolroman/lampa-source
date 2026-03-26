@@ -1,4 +1,4 @@
-import Favorites from '../core/favorite'
+import Favorites from '../favorite'
 import Lang from '../core/lang'
 import Arrays from '../utils/arrays'
 import Utils from '../utils/utils'
@@ -9,7 +9,6 @@ import LineModule from '../interaction/items/line/module/module'
 import Background from '../interaction/background'
 import Router from '../core/router'
 import CardModule from '../interaction/card/module/module'
-import Account from '../core/account/account'
 import EmptyRouter from '../interaction/empty/module/router'
 import ContentRows from '../core/content_rows'
 
@@ -35,8 +34,6 @@ function component(object){
             let lines    = []
             let folders  = ['book','like','wath', 'viewed','scheduled','thrown']
             let media    = ['movies','tv']
-            let premium  = Account.hasPremium()
-            let sync     = Account.Permit.sync
 
             lines.push({
                 results: [],
@@ -54,7 +51,7 @@ function component(object){
                     lines[0].results.push({
                         title: Lang.translate('title_' + a),
                         count: all[a].length,
-                        limit: sync ? (premium ? 2000 : 500) : 0,
+                        limit: 0,
                         params: {
                             module: RegisterModule.only('Line', 'Callback'),
                             createInstance: (item)=> new Register(item),

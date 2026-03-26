@@ -1,8 +1,6 @@
 import Template from './template'
 import Storage from '../core/storage/storage'
-import Socket from '../core/socket'
 import Utils from '../utils/utils'
-import Account from '../core/account/account'
 import Subscribe from '../utils/subscribe'
 import Activity from './activity/activity'
 
@@ -40,7 +38,7 @@ function read(no_nolisten = false){
  * @returns {string} - имя файла
  */
 function filename(){
-    return 'file_view' + (Account.Permit.sync ? '_' + Account.Permit.account.profile.id : '')
+    return 'file_view_sync'
 }
 
 /**
@@ -106,7 +104,6 @@ function update(params){
         data:{ hash: params.hash, road }
     })
 
-    if(!params.received && Account.hasPremium()) Socket.send('timeline',{params})
 }
 
 /**
@@ -116,7 +113,7 @@ function update(params){
  */
 function view(hash){
     let curent  = typeof viewed[hash] !== 'undefined' ? viewed[hash] : 0,
-        profile = Account.Permit.sync ? Account.Permit.account.profile.id : 0
+        profile = 0
 
     let road = {
         percent: 0,

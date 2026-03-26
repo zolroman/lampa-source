@@ -9,7 +9,7 @@ import Activity from './interaction/activity/activity'
 import Controller from './core/controller'
 import Layer from './core/layer'
 import Select from './interaction/select'
-import Favorite from './core/favorite'
+import Favorite from './favorite'
 import Background from './interaction/background'
 import Notice from './interaction/notice/notice'
 import NoticeClass from './interaction/notice/class'
@@ -48,7 +48,8 @@ import Modal from './interaction/modal'
 import Api from './core/api/api'
 import Info from './interaction/info_old'
 import Card from './interaction/card'
-import Account from './core/account/account'
+import Account from './account'
+import Sync from './sync'
 import Plugins from './core/plugins'
 import Socket from './core/socket'
 import Recomends from './core/recomend'
@@ -313,6 +314,7 @@ function initClass(){
         Card,
         Info,
         Account,
+        Sync,
         Socket,
         Input,
         Screensaver,
@@ -558,6 +560,9 @@ function startApp(){
 
     Account.init()
     LoadingProgress.status('Account init')
+
+    Sync.init()
+    LoadingProgress.status('Sync init')
 
     Extensions.init()
     LoadingProgress.status('Extensions init')
@@ -807,6 +812,12 @@ function loadTask(){
         LoadingProgress.step(5)
 
         Account.task(next)
+    })
+
+    Task.queue((next)=>{
+        LoadingProgress.status('Sync initialization')
+
+        Sync.task(next)
     })
 
     Task.secondary(()=>{

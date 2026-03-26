@@ -17,7 +17,7 @@ import Trailers from './start/trailers'
 import Poster from './start/poster'
 import Reactions from './start/reactios'
 import Translations from './start/translations'
-import Bookmarks from './start/bookmarks'
+import Bookmarks from './bookmarks_local'
 import Buttons from './start/buttons'
 
 class Start extends Emit {

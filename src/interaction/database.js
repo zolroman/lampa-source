@@ -6,7 +6,7 @@ import StorageManager from './storage_manager'
 import Controller from '../core/controller'
 import Select from './select'
 import Cache from '../utils/cache'
-import Favorite from '../core/favorite'
+import Favorite from '../favorite'
 import Noty from './noty'
 
 let component = 'data'

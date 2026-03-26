@@ -2,7 +2,7 @@ import Template from './template'
 import Api from '../core/api/api'
 import Arrays from '../utils/arrays'
 import Select from './select'
-import Favorite from '../core/favorite'
+import Favorite from '../favorite'
 import Controller from '../core/controller'
 import Storage from '../core/storage/storage'
 import Utils from '../utils/utils'
@@ -385,24 +385,21 @@ function Card(data, params = {}){
             }
         ]
 
-        if( window.lampa_settings.account_use){
-            let marks = ['look', 'viewed', 'scheduled', 'continued', 'thrown']
+        let marks = ['look', 'viewed', 'scheduled', 'continued', 'thrown']
 
+        menu_favorite.push({
+            title: Lang.translate('settings_cub_status'),
+            separator: true
+        })
+
+        marks.forEach(m=>{
             menu_favorite.push({
-                title: Lang.translate('settings_cub_status'),
-                separator: true
+                title: Lang.translate('title_'+m),
+                where: m,
+                picked: status[m],
+                collect: true
             })
-
-            marks.forEach(m=>{
-                menu_favorite.push({
-                    title: Lang.translate('title_'+m),
-                    where: m,
-                    picked: status[m],
-                    collect: true,
-                    noenter: !Account.hasPremium()
-                })
-            })
-        }
+        })
 
         
         Manifest.plugins.forEach(plugin=>{
@@ -475,24 +472,7 @@ function Card(data, params = {}){
 
                 Controller.toggle(enabled)
             },
-            onDraw: (item, elem)=>{
-                if(elem.collect){
-                    if(!Account.hasPremium()){
-                        let wrap = $('<div class="selectbox-item__lock"></div>')
-                            wrap.append(Template.js('icon_lock'))
-
-                        item.find('.selectbox-item__checkbox').remove()
-
-                        item.append(wrap)
-
-                        item.on('hover:enter',()=>{
-                            Select.close()
-
-                            Account.showCubPremium()
-                        })
-                    }
-                }
-            }
+            onDraw: ()=>{}
         })
     }
 

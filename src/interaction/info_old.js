@@ -1,5 +1,5 @@
 import Template from './template'
-import Favorite from '../core/favorite'
+import Favorite from '../favorite'
 import Lang from '../core/lang'
 
 function create(object = {}){

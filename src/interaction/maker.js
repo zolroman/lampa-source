@@ -4,7 +4,7 @@ import MaskHelper from '../utils/mask'
 
 import Card from './card/card'
 import CardModule from './card/module/module'
-import CardMap from './card/module/map'
+import CardMap from './card_map'
 import Main from './items/main'
 import MainModule from './items/main/module/module'
 import MainMap from './items/main/module/map'

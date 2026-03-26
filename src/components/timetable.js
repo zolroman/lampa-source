@@ -2,12 +2,11 @@ import Controller from '../core/controller'
 import Scroll from '../interaction/scroll'
 import Activity from '../interaction/activity/activity'
 import TimeTable from '../core/timetable'
-import Favorite from '../core/favorite'
+import Favorite from '../favorite'
 import Utils from '../utils/utils'
 import Modal from '../interaction/modal'
 import Template from '../interaction/template'
 import Empty from '../interaction/empty/empty'
-import Account from '../core/account/account'
 import Lang from '../core/lang'
 import TMDB from '../core/tmdb/tmdb'
 import Background from '../interaction/background'
@@ -23,8 +22,6 @@ function component(object){
     
     
     this.create = function(){
-        if(Account.Permit.sync) cards = Account.Bookmarks.all()
-
         cards.forEach(card=>{
             cards_map[card.id] = card
         })
