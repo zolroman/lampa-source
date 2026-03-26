@@ -3,15 +3,15 @@ import Storage from './core/storage/storage'
 import Utils from './utils/utils'
 
 let network  = new Reguest()
-let root_url = 'http://127.0.0.1:8080'
-let base_url = 'http://127.0.0.1:8080/api/sync'
+let origin   = 'http://127.0.0.1:8080'
+let base_url = origin + '/api/sync'
 
 function url(path = ''){
     return base_url + (path ? '/' + path.replace(/^\//,'') : '')
 }
 
 function rootUrl(path = ''){
-    return root_url + (path ? '/' + path.replace(/^\//,'') : '')
+    return origin + (path ? '/' + path.replace(/^\//,'') : '')
 }
 
 function ensureDeviceId(){
