@@ -6,6 +6,8 @@ import Manifest from '../core/manifest'
  * @returns {void}
  */
 function init(){
+    return
+
     let include = []
 
     // Видео библиотеки

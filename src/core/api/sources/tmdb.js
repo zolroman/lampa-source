@@ -612,7 +612,7 @@ function category(params = {}, oncomplite, onerror){
 }
 
 function full(params = {}, oncomplite, onerror){
-    let status = new Status(9)
+    let status = new Status(8)
         status.onComplite = oncomplite
 
     if(Utils.dcma(params.method, params.id)) return onerror()
@@ -686,17 +686,6 @@ function full(params = {}, oncomplite, onerror){
         status.need -= 4
     }
 
-    Api.sources.cub.reactionsGet(params,(json)=>{
-        status.append('reactions', json)
-    })
-
-    if(Lang.selected(['ru','uk','be']) && window.lampa_settings.account_use && !Permit.child){
-        status.need++
-
-        Api.sources.cub.discussGet(params, (json)=>{
-            status.append('discuss', json)
-        },status.error.bind(status))
-    }
 }
 
 function videos(params = {}, oncomplite, onerror){
@@ -1366,3 +1355,4 @@ export default {
     getGenresNameFromIds,
     videos
 }
+

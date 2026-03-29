@@ -5,8 +5,6 @@ import Progress from '../../utils/progress'
 import Arrays from '../../utils/arrays'
 import Storage from '../storage/storage'
 import TMDB from './sources/tmdb'
-import CUB  from './sources/cub'
-import Manifest from '../manifest'
 import Lang from '../lang'
 import LineModule from '../../interaction/items/line/module/module'
 
@@ -14,15 +12,13 @@ import LineModule from '../../interaction/items/line/module/module'
  * Источники
  */
 let sources = {
-    tmdb: TMDB,
-    cub: CUB
+    tmdb: TMDB
 }
 
 /**
  * Чтоб не переписали их
  */
 Object.defineProperty(sources, 'tmdb', { get: ()=> TMDB })
-Object.defineProperty(sources, 'cub', { get: ()=> CUB })
 
 let network = new Reguest()
 
@@ -211,9 +207,14 @@ function favorite(params = {}, oncomplite, onerror){
  * @param {function} onerror 
  */
 function relise(params, oncomplite, onerror){
-    network.silent(Utils.protocol() + 'tmdb.'+Manifest.cub_domain+'?sort=releases&results=20&page='+params.page,(data)=>{
-        oncomplite(Utils.addSource(data, 'cub'))
-    }, onerror)
+    if(oncomplite){
+        oncomplite({
+            results: [],
+            page: params && params.page ? params.page : 1,
+            total_pages: 0
+        })
+    }
+    else if(onerror) onerror()
 }
 
 function partKeywords(parts, type, shift = 0, filter = [], req_params = {}){

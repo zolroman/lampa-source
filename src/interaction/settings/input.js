@@ -9,6 +9,7 @@ import Lang from '../../core/lang'
 import Utils from '../../utils/utils'
 
 let html,keyboard,input,input_value = ''
+let back_controller = 'settings_component'
 
 /**
  * Заустить редактор
@@ -16,6 +17,8 @@ let html,keyboard,input,input_value = ''
  * @param {function} call 
  */
 function edit(params, call){
+    back_controller = params && params.controller ? params.controller : 'settings_component'
+
     html = Template.get('settings_input')
 
     input = html.find('.settings-input__input')
@@ -153,7 +156,7 @@ function edit(params, call){
 function back(){
     destroy()
 
-    Controller.toggle('settings_component')
+    Controller.toggle(back_controller)
 }
 
 /**

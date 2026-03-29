@@ -6,7 +6,6 @@ import Select from '../select'
 import Controller from '../../core/controller'
 import Subscribe from '../../utils/subscribe'
 import Lang from '../../core/lang'
-import Manifest from '../../core/manifest'
 
 let values   = {}
 let defaults = {}
@@ -210,7 +209,6 @@ function init(){
     let screensaver_types = {
         'nature': '#{settings_param_screensaver_nature}',
         'chrome': 'ChromeCast',
-        'cub': 'CUB',
         'aerial': 'Aerial'
     }
 
@@ -605,8 +603,7 @@ select('player_hls_method',{
 
 
 select('source',{
-    'tmdb': 'TMDB',
-    'cub': 'CUB'
+    'tmdb': 'TMDB'
 },'tmdb')
 
 select('start_page', {
@@ -690,13 +687,6 @@ select('player_launch_trailers',{
     'youtube': 'YouTube',
 },'inner')
 
-let mirrors_select = {}
-
-Manifest.cub_mirrors.forEach((mirror)=>{
-    mirrors_select[mirror] = mirror
-})
-
-select('cub_domain', mirrors_select, Manifest.cub_domain)
 
 /**
  * Добовляем триггеры
@@ -716,7 +706,6 @@ trigger('subtitles_stroke', true)
 trigger('subtitles_backdrop', false)
 trigger('screensaver', true)
 trigger('proxy_tmdb', true)
-trigger('proxy_tmdb_auto', true)
 trigger('proxy_other', true)
 trigger('parse_in_search', false)
 trigger('subtitles_start', false)
@@ -776,3 +765,4 @@ export default {
     values: values,
     defaults: defaults
 }
+

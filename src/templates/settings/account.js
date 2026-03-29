@@ -14,12 +14,6 @@ let html = `<div>
     </div>
 
     <div class="settings-param-title settings--account-user hide"><span>#{settings_cub_account}</span> <span class="settings-param__label hide">Premium</span></div>
-
-    <div class="settings-param selector hide" data-type="select" data-name="cub_domain">
-        <div class="settings-param__name">#{settings_cub_domain}</div>
-        <div class="settings-param__value"></div>
-    </div>
-
     <div class="settings-param selector settings--account-user settings--account-user-info hide" data-static="true">
         <div class="settings-param__name">#{settings_cub_logged_in_as}</div>
         <div class="settings-param__value"></div>

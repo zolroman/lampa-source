@@ -14,7 +14,7 @@ function Main(){
     this.create = ()=>{
         comp = Template.get('settings_main')
 
-        if(!window.lampa_settings.account_use) comp.find('[data-component="account"]').remove()
+        comp.find('[data-component="account"]').remove()
         if(!window.lampa_settings.plugins_use) comp.find('[data-component="plugins"]').remove()
         if(!Lampa.Platform.is('apple_tv')) comp.find('[data-component="appletv"]').remove()
 

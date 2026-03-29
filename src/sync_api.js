@@ -1,6 +1,5 @@
 import Reguest from './utils/reguest'
-import Storage from './core/storage/storage'
-import Utils from './utils/utils'
+import SyncAuth from './sync_auth'
 
 let network  = new Reguest()
 let origin   = 'http://127.0.0.1:8080'
@@ -14,32 +13,7 @@ function rootUrl(path = ''){
     return origin + (path ? '/' + path.replace(/^\//,'') : '')
 }
 
-function ensureDeviceId(){
-    let uid = Storage.get('lampa_uid', '') + ''
-
-    if(!uid){
-        uid = Utils.uid()
-
-        Storage.set('lampa_uid', uid, true)
-    }
-
-    return uid
-}
-
-function userId(){
-    let user = Storage.get('account_user', '{}') || {}
-
-    if(user.id) return 'user:' + user.id
-
-    let account = Storage.get('account', '{}') || {}
-    let email   = ((account.email || Storage.get('account_email', '') || '') + '').trim().toLowerCase()
-
-    if(email) return 'email:' + email
-
-    return 'device:' + ensureDeviceId()
-}
-
-function load(path, params = {}, post = false, with_user = true){
+function request(path, params = {}, body = false, token = '', retry = false){
     return new Promise((resolve, reject)=>{
         let request = {
             timeout: 5000,
@@ -48,25 +22,38 @@ function load(path, params = {}, post = false, with_user = true){
 
         let headers = Object.assign({}, params.headers || {})
 
-        if(post !== false){
+        if(body !== false){
             headers['Content-Type'] = 'application/json'
-
-            post = JSON.stringify(post)
         }
 
         Object.assign(request, params)
 
-        if(with_user) headers['X-Lampa-User-Id'] = userId()
+        if(token) headers['Authorization'] = 'Bearer ' + token
 
         request.headers = headers
 
-        network.silent(url(path), resolve, reject, post, request)
+        network.silent(url(path), resolve, (error)=>{
+            if(retry && error && error.status == 401){
+                SyncAuth.refresh().then(()=>{
+                    return requestWithAuth(path, params, body, false)
+                }).then(resolve).catch(()=>reject(error))
+            }
+            else reject(error)
+        }, body, request)
+    })
+}
+
+function requestWithAuth(path, params = {}, post = false, retry = true){
+    let body = post === false ? false : JSON.stringify(post)
+
+    return SyncAuth.ensureAccessToken().then((token)=>{
+        return request(path, params, body, token, retry)
     })
 }
 
 export default {
     url,
-    load,
+    load: requestWithAuth,
     clear: network.clear,
     health: ()=> new Promise((resolve, reject)=>{
         network.silent(rootUrl('health'), resolve, reject, false, {
@@ -74,14 +61,14 @@ export default {
             dataType: 'json'
         })
     }),
-    bootstrapStatus: ()=> load('bootstrap/status'),
-    bootstrap: (payload)=> load('bootstrap', {}, payload),
-    bookmarksDump: ()=> load('bookmarks/dump'),
-    bookmarksChangelog: (since)=> load('bookmarks/changelog?since=' + since),
-    bookmarksAdd: (payload)=> load('bookmarks/add', {}, payload),
-    bookmarksRemove: (payload)=> load('bookmarks/remove', {}, payload),
-    bookmarksClear: (payload)=> load('bookmarks/clear', {}, payload),
-    timelineDump: ()=> load('timeline/dump'),
-    timelineChangelog: (since)=> load('timeline/changelog?since=' + since),
-    timelineUpsert: (payload)=> load('timeline/upsert', {}, payload)
+    bootstrapStatus: ()=> requestWithAuth('bootstrap/status'),
+    bootstrap: (payload)=> requestWithAuth('bootstrap', {}, payload),
+    bookmarksDump: ()=> requestWithAuth('bookmarks/dump'),
+    bookmarksChangelog: (since)=> requestWithAuth('bookmarks/changelog?since=' + since),
+    bookmarksAdd: (payload)=> requestWithAuth('bookmarks/add', {}, payload),
+    bookmarksRemove: (payload)=> requestWithAuth('bookmarks/remove', {}, payload),
+    bookmarksClear: (payload)=> requestWithAuth('bookmarks/clear', {}, payload),
+    timelineDump: ()=> requestWithAuth('timeline/dump'),
+    timelineChangelog: (since)=> requestWithAuth('timeline/changelog?since=' + since),
+    timelineUpsert: (payload)=> requestWithAuth('timeline/upsert', {}, payload)
 }

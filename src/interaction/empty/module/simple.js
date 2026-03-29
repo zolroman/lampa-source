@@ -1,23 +1,9 @@
-import Storage from '../../../core/storage/storage'
-import Activity from '../../activity/activity'
 import Empty from '../empty'
-import Lang from '../../../core/lang'
 
 export default {
     onEmpty: function(){
         let params = this.params.empty || {}
-            params.buttons = params.buttons || []
-
-        if(this.object.source == 'tmdb' && params.cub_button){
-            params.buttons.push({
-                title: Lang.translate('change_source_on_cub'),
-                onEnter: ()=>{
-                    Storage.set('source','cub')
-
-                    Activity.replace({source: 'cub'})
-                }
-            })
-        }
+        params.buttons = params.buttons || []
 
         this.empty_class = new Empty(params)
 

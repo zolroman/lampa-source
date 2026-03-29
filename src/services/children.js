@@ -17,7 +17,7 @@ function init(){
 function setChildrenProfile(){
     if(!Permit.child) return
 
-    Storage.set('source', 'cub', true)
+    Storage.set('source', 'tmdb', true)
 
     Storage.add('parental_control_personal', 'account_profiles', true)
     Storage.add('parental_control_personal', 'settings', true)
@@ -26,7 +26,7 @@ function setChildrenProfile(){
 }
 
 function addStyle(){
-    let not = ['main', 'movie', 'tv', 'cartoon', 'catalog', 'filter', 'anime', 'favorite', 'history', 'timetable', 'subscribes', 'settings', 'about', 'console', 'edit']
+    let not = ['main', 'movie', 'tv', 'cartoon', 'catalog', 'filter', 'favorite', 'history', 'timetable', 'settings', 'about', 'console', 'edit']
     let css = `
         body.hide-menu .menu__item:not([data-action="${not.join('"]):not([data-action="')}"]){
             display: none;

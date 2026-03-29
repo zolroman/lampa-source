@@ -149,7 +149,7 @@ if(conditions.indexOf(true) >= 0) torrents_use = false
 
 Arrays.extend(window.lampa_settings,{
     // Использовать сокеты для синхронизации данных
-    socket_use: true,
+    socket_use: false,
 
     // Адрес сокета, по умолчанию лампа берет адреса из манифеста
     socket_url: undefined,
@@ -158,16 +158,16 @@ Arrays.extend(window.lampa_settings,{
     socket_methods: true,
 
     // Использовать аккаунты CUB
-    account_use: true,
+    account_use: false,
 
     // Синхронизировать закладки, таймкоды и прочее
-    account_sync: true,
+    account_sync: false,
 
     // Разрешить установку плагинов и расширений
     plugins_use: true,
 
     // Разрешить использование магазина расширений
-    plugins_store: true,
+    plugins_store: false,
 
     // Показывать кнопку торрентов
     torrents_use: torrents_use,
@@ -175,27 +175,27 @@ Arrays.extend(window.lampa_settings,{
     // Отключить фитчи куба и лампы
     disable_features: {
         // Блокировку карточек
-        dmca: false,
+        dmca: true,
         // Блокировка ЛГБТ-контента
-        lgbt: false,
+        lgbt: true,
         // Реакции
-        reactions: false,
+        reactions: true,
         // Обсуждения
-        discuss: false,
+        discuss: true,
         // ИИ
         ai: false,
         // Подписка на уведомления
-        subscribe: false,
+        subscribe: true,
         // Черный список плагинов
-        blacklist: false,
+        blacklist: true,
         // Подписка на актеров
-        persons: false,
+        persons: true,
         // Вспомогатиленые сервисы на подписку према
-        ads: false,
+        ads: true,
         // Трейлеры
         trailers: false,
         // Установка прокси для запросов
-        install_proxy: false
+        install_proxy: true
     },
 
     // Подключить другие языки интерфейса, по умолчанию только русский и английский
@@ -211,7 +211,7 @@ Arrays.extend(window.lampa_settings,{
     dcma: false,
 
     // Добавить блокировку ЛГБТ контента, пример: [{"id":3566556,"type":"movie"},...]
-    lgbt: false,
+    lgbt: true,
 
     // Добавлять в адресную строку название текущего экрана
     push_state: true,
@@ -220,19 +220,19 @@ Arrays.extend(window.lampa_settings,{
     iptv: false,
 
     // Показать ленту
-    feed: true,
+    feed: false,
 
     // Различные сервисы в приложении
-    services: true,
+    services: false,
 
     // Подключить YouTube API
     youtube: true,
 
     // Определять гео по IP, иначе будет RU
-    geo: true,
+    geo: false,
 
     // Использовать поиск зеркал
-    mirrors: true,
+    mirrors: false,
 
     // Режим разработчика
     developer: {
@@ -509,6 +509,10 @@ function startApp(){
 
     Storage.init()
     LoadingProgress.status('Storage init')
+
+    if(Storage.get('source', 'tmdb') == 'cub') Storage.set('source', 'tmdb', true)
+    if(Storage.get('screensaver_type', 'aerial') == 'cub') Storage.set('screensaver_type', 'aerial', true)
+    if(Storage.get('proxy_tmdb_auto', false)) Storage.set('proxy_tmdb_auto', false, true)
 
     Timeline.init()
     LoadingProgress.status('Timeline init')
@@ -909,3 +913,4 @@ if(!window.fitst_load){
     }
     else loadApp()
 }
+

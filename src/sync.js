@@ -3,10 +3,13 @@ import Timer from './core/timer'
 import Api from './sync_api'
 import Bookmarks from './sync_bookmarks'
 import Timeline from './sync_timeline'
+import Auth from './sync_auth'
 
 let syncing = false
 
 function init(){
+    Auth.init()
+
     Bookmarks.init()
     Timeline.init()
 
@@ -27,7 +30,11 @@ function sync(call){
         if(call) call()
     }
 
-    Api.health().then(()=>{
+    Auth.restore().then(()=>{
+        if(!Auth.hasSession()) throw {status: 401}
+
+        return Api.health()
+    }).then(()=>{
         return Api.bootstrapStatus()
     }).then((status)=>{
         let payload = {}

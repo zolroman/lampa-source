@@ -23,19 +23,15 @@ function Feed(object){
     
     
     this.create = function(){
-        this.activity.loader(true)
+        let empty = new Empty()
 
-        network.silent(Utils.protocol() + Manifest.cub_domain + '/api/feed/all',this.build.bind(this),()=>{
-            let empty = new Empty()
+        html.append(empty.render(true))
 
-            html.append(empty.render(true))
+        this.start = empty.start.bind(empty)
 
-            this.start = empty.start.bind(empty)
+        this.activity.loader(false)
 
-            this.activity.loader(false)
-
-            this.activity.toggle()
-        })
+        this.activity.toggle()
 
         return this.render()
     }

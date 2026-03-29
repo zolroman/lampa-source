@@ -37,10 +37,10 @@ function parseStart(){
             id: id,
             component: "full",
             method: Utils.gup('media') || 'movie',
-            source: Utils.gup('source') || 'cub',
+            source: Utils.gup('source') || 'tmdb',
             card: {
                 id: id,
-                source: Utils.gup('source') || 'cub'
+                source: Utils.gup('source') || 'tmdb'
             }
         }
     }
@@ -65,6 +65,27 @@ function parseStart(){
 /**
  * Запуск
  */
+function sanitizeActivity(activity){
+    if(!activity) return activity
+
+    if(activity.source == 'cub') activity.source = 'tmdb'
+    if(activity.card && activity.card.source == 'cub') activity.card.source = 'tmdb'
+
+    if(activity.component == 'feed' || activity.component == 'relise'){
+        return {
+            url: '',
+            title: Lang.translate('title_main') + ' - ' + Storage.field('source').toUpperCase(),
+            component: 'main',
+            source: Storage.field('source'),
+            page: 1
+        }
+    }
+
+    return activity
+}
+
+
+
 function init(){
     content   = Template.js('activitys')
     slides    = content.querySelector('.activitys__slides')
@@ -506,11 +527,14 @@ function last(){
     }
     else if(window.start_deep_link){
         window.start_deep_link.page = 1
+        window.start_deep_link = sanitizeActivity(window.start_deep_link)
         
         push(window.start_deep_link)
     }
     else if(active && start_from === "last"){
         if(active.page) active.page = 1
+
+        active = sanitizeActivity(active)
 
         push(active)
     }

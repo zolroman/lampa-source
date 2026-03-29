@@ -6,6 +6,8 @@ import Account from '../core/account/account'
 import VPN from '../core/vpn'
 
 function init(){
+    return
+
     let today = new Date()
     let date  = today.toISOString().split('T')[0]
 
