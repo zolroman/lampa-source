@@ -76,7 +76,6 @@ import Developer from './interaction/developer'
 import DeviceInput from './interaction/device_input'
 import AppWorker from './utils/worker'
 import Theme from './core/theme'
-import AdManager from './interaction/advert/manager'
 import DB from './utils/db'
 import NavigationBar from './interaction/navigation_bar'
 import Endless from './interaction/endless'
@@ -601,8 +600,6 @@ function startApp(){
     Theme.init()
     LoadingProgress.status('Theme init')
 
-    AdManager.init()
-    LoadingProgress.status('AdManager init')
 
     NavigationBar.init()
     LoadingProgress.status('NavigationBar init')
