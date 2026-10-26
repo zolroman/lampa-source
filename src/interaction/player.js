@@ -33,7 +33,6 @@ import Reaction from './player/reaction'
 import Subtitles from './player/subtitles'
 import Error from './player/error'
 import {tracksFromFfprobe} from './player/track_info'
-import VLC from '../core/vlc'
 
 let html
 let listener = Subscribe()
