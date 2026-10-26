@@ -132,8 +132,15 @@ function plugins(done) {
     fs.readdirSync(plgFolder).filter(function (file) {
         return fs.statSync(plgFolder+'/'+file).isDirectory();
     }).forEach(folder => {
-        
-        plugin_sass(plgFolder+'/'+folder)
+        const pluginPath = plgFolder + '/' + folder
+        const pluginEntry = pluginPath + '/' + folder + '.js'
+
+        if (!fs.existsSync(pluginEntry)) {
+            console.warn('skip plugin without entry', pluginEntry)
+            return
+        }
+
+        plugin_sass(pluginPath)
         bubbleFile(folder+'/'+folder+'.js')
     });
       
@@ -424,13 +431,15 @@ function buildDoc(done){
     done()
 }
 
+const dev_build = series(merge, plugins, sass_task, lang_task, sync_web, build_web);
+
 exports.pack_webos   = series(sync_webos, uglify_task, public_webos, index_webos);
 exports.pack_tizen   = series(sync_tizen, uglify_task, public_tizen, index_tizen);
 exports.pack_github  = series(sync_github, uglify_task, public_github, write_manifest, index_github, plugins_github);
 exports.pack_plugins = series(plugins);
 exports.test         = series(test);
 exports.default = parallel(watch, browser_sync);
-exports.debug = series(enable_debug_mode, add_debug_files, this.default);
+exports.debug = series(enable_debug_mode, add_debug_files, dev_build, parallel(watch, browser_sync));
 exports.doc = series(sync_doc, buildDoc);
-exports.build = series(merge, plugins, sass_task, lang_task, sync_web, build_web);
+exports.build = dev_build;
 exports.write_manifest = series(write_manifest)

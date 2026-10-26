@@ -1,27 +1,6 @@
 import Storage from './core/storage/storage'
-import Timeline from './interaction/timeline'
-import Api from './sync_api'
 
-let tracker_name = 'sync_timeline_tracker'
-let pending_name = 'sync_timeline_pending'
 let file_name    = 'file_view_sync'
-let followed     = false
-
-function tracker(){
-    return Storage.get(tracker_name, {
-        version: 0,
-        time: 0
-    })
-}
-
-function saveTracker(data){
-    let current = tracker()
-
-    current.version = typeof data.version == 'number' ? data.version : current.version
-    current.time    = typeof data.time == 'number' ? data.time : current.time
-
-    Storage.set(tracker_name, current, true)
-}
 
 function normalizeRoad(road){
     if(typeof road == 'number'){
@@ -80,107 +59,10 @@ function hasLocalData(data = exportLocal()){
     return Object.keys(data).length > 0
 }
 
-function applyLocal(data){
-    Storage.set(file_name, data || {}, true)
-    Timeline.read()
-}
-
-function pending(){
-    return Storage.get(pending_name, '{}')
-}
-
-function savePending(data){
-    Storage.set(pending_name, data, true)
-}
-
-function queue(hash, road){
-    let data = pending()
-
-    data[hash] = normalizeRoad(road)
-
-    savePending(data)
-}
-
-function follow(){
-    if(followed) return
-
-    Timeline.listener.follow('update',(e)=>{
-        if(e && e.data && e.data.hash) queue(e.data.hash, e.data.road)
-    })
-
-    followed = true
-}
-
-function flushPending(call){
-    let data   = pending()
-    let hashes = Object.keys(data)
-
-    if(!hashes.length) return call && call()
-
-    let index = 0
-
-    let next = ()=>{
-        if(index >= hashes.length){
-            savePending({})
-            return call && call()
-        }
-
-        let hash = hashes[index]
-        let road = normalizeRoad(data[hash])
-
-        Api.timelineUpsert({
-            hash,
-            percent: road.percent,
-            time: road.time,
-            duration: road.duration,
-            profile: 0
-        }).then(()=>{
-            index++
-            next()
-        }).catch(()=>{
-            let rest = {}
-
-            hashes.slice(index).forEach((key)=>{
-                rest[key] = data[key]
-            })
-
-            savePending(rest)
-            call && call()
-        })
-    }
-
-    next()
-}
-
-function update(call){
-    let current = tracker()
-    let needDump = !current.version || current.time < Date.now() - 1000 * 60 * 60 * 24 * 10
-    let request  = needDump ? Api.timelineDump() : Api.timelineChangelog(current.version)
-
-    request.then((result)=>{
-        let local = needDump ? {} : Storage.get(file_name, '{}')
-
-        Object.keys(result.timelines || {}).forEach((hash)=>{
-            local[hash] = normalizeRoad(result.timelines[hash])
-        })
-
-        applyLocal(local)
-
-        saveTracker({
-            version: result.version || current.version || 0,
-            time: Date.now()
-        })
-
-        call && call()
-    }).catch(()=>{
-        call && call()
-    })
-}
-
 export default {
-    init: follow,
-    update,
-    flushPending,
+    init: ()=>{},
+    update: (call)=>call && call(),
+    flushPending: (call)=>call && call(),
     exportLocal,
     hasLocalData
 }

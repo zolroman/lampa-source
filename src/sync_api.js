@@ -22,9 +22,7 @@ function request(path, params = {}, body = false, token = '', retry = false){
 
         let headers = Object.assign({}, params.headers || {})
 
-        if(body !== false){
-            headers['Content-Type'] = 'application/json'
-        }
+        if(body !== false) headers['Content-Type'] = 'application/json'
 
         Object.assign(request, params)
 
@@ -63,12 +61,10 @@ export default {
     }),
     bootstrapStatus: ()=> requestWithAuth('bootstrap/status'),
     bootstrap: (payload)=> requestWithAuth('bootstrap', {}, payload),
-    bookmarksDump: ()=> requestWithAuth('bookmarks/dump'),
-    bookmarksChangelog: (since)=> requestWithAuth('bookmarks/changelog?since=' + since),
-    bookmarksAdd: (payload)=> requestWithAuth('bookmarks/add', {}, payload),
-    bookmarksRemove: (payload)=> requestWithAuth('bookmarks/remove', {}, payload),
+    bookmarksStatus: (payload)=> requestWithAuth('bookmarks/status', {}, payload || {card_ids: []}),
+    bookmarksList: (payload)=> requestWithAuth('bookmarks/list', {}, payload || {types: []}),
+    bookmarksSet: (payload)=> requestWithAuth('bookmarks/set', {}, payload),
     bookmarksClear: (payload)=> requestWithAuth('bookmarks/clear', {}, payload),
-    timelineDump: ()=> requestWithAuth('timeline/dump'),
-    timelineChangelog: (since)=> requestWithAuth('timeline/changelog?since=' + since),
-    timelineUpsert: (payload)=> requestWithAuth('timeline/upsert', {}, payload)
+    timelineGet: (payload)=> requestWithAuth('timeline/get', {}, payload || {hashes: []}),
+    timelineSet: (payload)=> requestWithAuth('timeline/set', {}, payload)
 }

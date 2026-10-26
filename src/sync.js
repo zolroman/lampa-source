@@ -1,19 +1,14 @@
 import Utils from './utils/utils'
-import Timer from './core/timer'
 import Api from './sync_api'
 import Bookmarks from './sync_bookmarks'
 import Timeline from './sync_timeline'
 import Auth from './sync_auth'
+import Favorite from './favorite'
 
 let syncing = false
 
 function init(){
     Auth.init()
-
-    Bookmarks.init()
-    Timeline.init()
-
-    Timer.add(1000 * 60 * 5, ()=>sync())
 }
 
 function task(call){
@@ -31,36 +26,35 @@ function sync(call){
     }
 
     Auth.restore().then(()=>{
-        if(!Auth.hasSession()) throw {status: 401}
+        if(!Auth.hasSession()) return false
 
-        return Api.health()
-    }).then(()=>{
+        return Api.health().then(()=>true)
+    }).then((ready)=>{
+        if(!ready) return false
+
         return Api.bootstrapStatus()
     }).then((status)=>{
+        if(status === false){
+            Favorite.syncAll(finish)
+            return
+        }
+
         let payload = {}
 
-        if(status.bookmarks && status.bookmarks.empty && Bookmarks.hasLocalData()){
+        if(status.bookmarks_empty && Bookmarks.hasLocalData()){
             payload.bookmarks = Bookmarks.exportLocal()
         }
 
-        if(status.timeline && status.timeline.empty && Timeline.hasLocalData()){
+        if(status.timeline_empty && Timeline.hasLocalData()){
             payload.timeline = Timeline.exportLocal()
         }
 
-        let afterBootstrap = ()=>{
-            Bookmarks.flushPending(()=>{
-                Timeline.flushPending(()=>{
-                    Bookmarks.update(()=>{
-                        Timeline.update(finish)
-                    })
-                })
+        if(payload.bookmarks || payload.timeline){
+            Api.bootstrap(payload).catch(()=>{}).then(()=>{
+                Favorite.syncAll(finish)
             })
         }
-
-        if(payload.bookmarks || payload.timeline){
-            Api.bootstrap(payload).then(afterBootstrap).catch(finish)
-        }
-        else afterBootstrap()
+        else Favorite.syncAll(finish)
     }).catch(finish)
 }
 

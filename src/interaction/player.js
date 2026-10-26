@@ -24,6 +24,7 @@ import Footer from './player/footer'
 import Segments from './player/segments'
 import VLC from '../core/vlc.js'
 import Base64 from '../utils/base64'
+import Timeline from './timeline'
 
 let html
 let listener = Subscribe()
@@ -919,6 +920,19 @@ function getUrlQuality(quality, set_better = true){
  */
 
 function play(data){
+    if(data.timeline && data.timeline.hash && !data.timeline.__remote_ready){
+        Timeline.load([data.timeline.hash], true).catch(()=>{}).then(()=>{
+            let timeline = Timeline.view(data.timeline.hash)
+
+            timeline.__remote_ready = true
+            data.timeline = timeline
+
+            play(data)
+        })
+
+        return
+    }
+
     let run = true
 
     listener.send('create', {data, abort: () => run = false})

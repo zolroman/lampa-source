@@ -1,27 +1,25 @@
 import Template from './template'
-import Storage from '../core/storage/storage'
 import Utils from '../utils/utils'
 import Subscribe from '../utils/subscribe'
 import Activity from './activity/activity'
+import Api from '../sync_api'
+import SyncAuth from '../sync_auth'
 
-let listener = Subscribe(), 
-    viewed
+let listener = Subscribe()
+let viewed = {}
+let loaded_at = {}
+let inflight = {}
+let cache_ttl = 3000
 
-/**
- * Инициализация
- * @returns {void}
- */
 function init(){
     read()
 }
 
-/**
- * Прочитать прогресс просмотра из localStorage
- * @returns {void}
- */
-function read(no_nolisten = false){
-    viewed = Storage.get(filename(), {})
+function hasSession(){
+    return SyncAuth.hasSession()
+}
 
+function read(no_nolisten = false){
     listener.send('read', {data: viewed})
 
     if(no_nolisten) return
@@ -33,105 +31,119 @@ function read(no_nolisten = false){
     })
 }
 
-/**
- * Имя файла для хранения прогресса просмотра в localStorage
- * @returns {string} - имя файла
- */
 function filename(){
     return 'file_view_sync'
 }
 
-/**
- * Обновить прогресс просмотра
- * @param {object} params - параметры прогресса
- * @param {number} params.hash - хеш файла
- * @param {number} params.percent - процент просмотра (0-100)
- * @param {number} [params.time] - текущее время просмотра в секундах
- * @param {number} [params.duration] - общая длительность файла в секундах
- * @param {number} [params.profile] - ID профиля
- * @param {boolean} [params.received] - флаг, что данные получены с сервера
- * @returns {void}
- */
-function update(params){
-    if(params.hash == 0) return
-
-    let road = viewed[params.hash]
-
-    if(typeof road == 'undefined' || typeof road == 'number'){
-        road = {
+function normalizeRoad(road){
+    if(typeof road == 'number'){
+        return {
             duration: 0,
             time: 0,
-            percent: 0,
+            percent: road,
             profile: 0
         }
-
-        viewed[params.hash] = road
     }
 
-    road.percent = params.percent
+    return {
+        duration: road && road.duration ? road.duration : 0,
+        time: road && road.time ? road.time : 0,
+        percent: road && road.percent ? road.percent : 0,
+        profile: road && road.profile ? road.profile : 0
+    }
+}
 
-    if(typeof params.time !== 'undefined')     road.time     = params.time
-    if(typeof params.duration !== 'undefined') road.duration = params.duration
-    if(typeof params.profile !== 'undefined')  road.profile  = params.profile
+function applyRoad(hash, road, silent = false){
+    viewed[hash] = normalizeRoad(road)
+    loaded_at[hash] = Date.now()
 
-    Storage.set(filename(), viewed)
+    if(silent) return
 
     let layers = [].concat(Activity.renderLayers())
-        layers.push($(document))
+    layers.push($(document))
 
     layers.forEach((layer)=>{
-        let line = $('.time-line[data-hash="'+params.hash+'"]', layer).toggleClass('hide', params.percent ? false : true)
+        let line = $('.time-line[data-hash="'+hash+'"]', layer).toggleClass('hide', viewed[hash].percent ? false : true)
 
         $('> div', line).css({
-            width: params.percent + '%'
+            width: viewed[hash].percent + '%'
         })
 
-        $('.time-line-details[data-hash="'+params.hash+'"]', layer).each(function(){
-            let f = format(road)
+        $('.time-line-details[data-hash="'+hash+'"]', layer).each(function(){
+            let f = format(viewed[hash])
 
             $(this).find('[a="t"]').text(f.time)
             $(this).find('[a="p"]').text(f.percent)
             $(this).find('[a="d"]').text(f.duration)
-            $(this).toggleClass('hide', road.duration ? false : true)
+            $(this).toggleClass('hide', viewed[hash].duration ? false : true)
         })
     })
 
-    listener.send('update', {data:{ hash: params.hash, road }})
+    listener.send('update', {data:{ hash, road: viewed[hash] }})
 
     Lampa.Listener.send('state:changed', {
         target: 'timeline',
         reason: 'update',
-        data:{ hash: params.hash, road }
+        data:{ hash, road: viewed[hash] }
     })
-
 }
 
-/**
- * Получить прогресс просмотра
- * @param {string} hash - хеш файла
- * @return {object} - объект с прогрессом просмотра {hash, percent, time, duration, profile, handler}
- */
+function load(hashes = [], force = false){
+    let needed = hashes.filter(Boolean).filter((hash)=>{
+        return force || !loaded_at[hash] || loaded_at[hash] < Date.now() - cache_ttl
+    })
+
+    if(!needed.length || !hasSession()) return Promise.resolve()
+
+    let key = needed.slice().sort().join(',')
+    if(inflight[key]) return inflight[key]
+
+    inflight[key] = Api.timelineGet({
+        hashes: needed
+    }).then((result)=>{
+        let roads = result.timelines || {}
+
+        needed.forEach((hash)=>{
+            let road = roads[hash] || roads[hash + ''] || {percent: 0, time: 0, duration: 0}
+            viewed[hash] = normalizeRoad(road)
+            loaded_at[hash] = Date.now()
+        })
+
+        read()
+    }).catch(()=>{}).finally(()=>{
+        delete inflight[key]
+    })
+
+    return inflight[key]
+}
+
+function update(params){
+    if(params.hash == 0) return
+
+    let road = normalizeRoad(viewed[params.hash])
+
+    road.percent = typeof params.percent !== 'undefined' ? params.percent : road.percent
+    road.time = typeof params.time !== 'undefined' ? params.time : road.time
+    road.duration = typeof params.duration !== 'undefined' ? params.duration : road.duration
+    road.profile = typeof params.profile !== 'undefined' ? params.profile : road.profile
+
+    applyRoad(params.hash, road)
+
+    Api.timelineSet({
+        hash: params.hash,
+        percent: road.percent,
+        time: road.time,
+        duration: road.duration
+    }).catch(()=>{
+        load([params.hash], true)
+    })
+}
+
 function view(hash){
-    let curent  = typeof viewed[hash] !== 'undefined' ? viewed[hash] : 0,
-        profile = 0
+    console.log('timeline view', hash)
+    let road = normalizeRoad(viewed[hash])
 
-    let road = {
-        percent: 0,
-        time: 0,
-        duration: 0,
-        profile: 0
-    }
-
-    if(typeof curent == 'object'){
-        road.percent  = curent.percent
-        road.time     = curent.time
-        road.duration = curent.duration
-        road.profile  = curent.profile || profile
-    }
-    else{
-        road.percent = curent || 0
-        road.profile = profile
-    }
+    load([hash])
 
     listener.send('view', {data: { hash, road }})
 
@@ -145,11 +157,6 @@ function view(hash){
     }
 }
 
-/**
- * Создать прогресс просмотра
- * @param {object} params - параметры прогресса от функции view
- * @return {jQuery} - jQuery объект с прогрессом просмотра
- */
 function render(params){
     let line = Template.get('timeline', params)
 
@@ -158,12 +165,6 @@ function render(params){
     return line
 }
 
-/**
- * Создать детальную информацию о прогрессе просмотра
- * @param {object} params - параметры прогресса от функции view
- * @param {string} [str] - строка для добавления перед прогрессом
- * @return {jQuery} - jQuery объект с детальной информацией о прогрессе просмотра
- */
 function details(params, str = ''){
     let line = Template.get('timeline_details', format(params))
 
@@ -176,11 +177,6 @@ function details(params, str = ''){
     return line
 }
 
-/**
- * Проверить, смотрел ли файл
- * @param {object} card - карточка файла
- * @return {number} - процент просмотра (0-100)
- */
 function watched(card, return_time = false){
     if(card.original_name){
         let max  = 24
@@ -208,19 +204,12 @@ function watchedEpisode(card, season, episode, return_time = false){
     return return_time ? time : time.percent
 }
 
-/**
- * Форматировать прогресс в понятный человекy вид
- * @param {object} params - параметры прогресса от функции view
- * @return {object} - объект с отформатированными параметрами {percent, time, duration}
- */
 function format(params){
-    let road = {
+    return {
         percent: params.percent + '%',
         time: Utils.secondsToTimeHuman(params.time),
         duration: Utils.secondsToTimeHuman(params.duration)
     }
-
-    return road
 }
 
 export default {
@@ -234,5 +223,6 @@ export default {
     format,
     watched,
     watchedEpisode,
-    filename
+    filename,
+    load
 }
